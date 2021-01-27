@@ -20,6 +20,8 @@ import { AuthContext } from '../components/context';
 
 
 const SignInScreen = ({navigation}) => {
+    console.log("SignInScreen rendering");
+
     const [data, setData] = React.useState({
         username: '',
         password: '',
@@ -90,12 +92,16 @@ const SignInScreen = ({navigation}) => {
                 ></TextInput>
                 <Feather name="check-circle" color="#1478FF" size={2}/>      
             </View>
-            <View style={styles.button}>
-            <Button  title="로그인" onPress={()=>{handleLogin(data.username, data.password)}}/>
+
+            <View style={{alignItems:"center"}}>
+                <TouchableOpacity style={styles.button} onPress={()=>{handleLogin(data.username, data.password)}}>
+                    <Text style={{fontSize:20, color:"white"}}>로그인</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.button2} onPress={()=>navigation.navigate('SignUpScreen')}>
+                    <Text style={{fontSize:20, color:"#1478FF"}}>가입하기</Text>
+                </TouchableOpacity>
             </View>
-            <View style={styles.button}>
-            <Button  title="가입하기" onPress={()=>navigation.navigate('SignUpScreen')}/>
-            </View>
+
             </Animatable.View>
 
           
@@ -108,7 +114,7 @@ export default SignInScreen;
 const styles = StyleSheet.create({
     container: {
       flex: 1, 
-      backgroundColor: '#1478FF'
+      backgroundColor: '#0A6EFF',
     },
     header: {
         flex: 1,
@@ -122,7 +128,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
         paddingHorizontal: 20,
-        paddingVertical: 30
+        paddingVertical: 30,
     },
     text_header: {
         color: '#fff',
@@ -160,7 +166,24 @@ const styles = StyleSheet.create({
     },
     button: {
         alignItems: 'center',
-        marginTop: 10
+        marginTop: 10,
+        //borderStyle:"dashed", 
+        //borderWidth:1,
+        padding:10,
+        width: "80%",
+        borderRadius: 10,
+        backgroundColor: "#0A6EFF",
+        borderColor: "white"
+    },
+    button2: {
+        alignItems: 'center',
+        marginTop: 10,
+        //borderStyle:"dashed", 
+        borderWidth:1,
+        padding:10,
+        width: "80%",
+        borderRadius: 10,
+        borderColor: "#0A6EFF",
     },
     signIn: {
         width: '100%',

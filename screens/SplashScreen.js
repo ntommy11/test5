@@ -7,13 +7,15 @@ import {
     StyleSheet,
     StatusBar,
     Image,
-    Button
+    Button,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useTheme } from '@react-navigation/native';
 
 const SplashScreen = ({navigation}) => {
+    console.log("SplashScreen rendering");
+
     const { colors } = useTheme();
 
     return (
@@ -24,7 +26,9 @@ const SplashScreen = ({navigation}) => {
         </View>
         <Animatable.View style={styles.footer} animation="fadeInUpBig">
             <Text style={styles.title}>학교생활도우미</Text>
-            <Button title="시작하기" onPress={()=>navigation.navigate('SignInScreen')}/>
+            <TouchableOpacity style={styles.button} onPress={()=>navigation.navigate('SignInScreen')}>
+                    <Text style={{fontSize:20, color:"white"}}>시작하기</Text>
+            </TouchableOpacity>
         </Animatable.View>
       </View>
     );
@@ -38,7 +42,7 @@ const height_logo = height * 0.38;
 const styles = StyleSheet.create({
   container: {
     flex: 1, 
-    backgroundColor: '#1478FF',
+    backgroundColor: '#0A6EFF',
   },
   header: {
       flex: 2,
@@ -51,7 +55,8 @@ const styles = StyleSheet.create({
       borderTopLeftRadius: 30,
       borderTopRightRadius: 30,
       paddingVertical: 50,
-      paddingHorizontal: 30
+      paddingHorizontal: 30,
+      alignItems: "center"
   },
   logo: {
       width: height_logo,
@@ -69,9 +74,16 @@ const styles = StyleSheet.create({
       marginTop:5
   },
   button: {
-      alignItems: 'flex-end',
-      marginTop: 30
-  },
+    alignItems: 'center',
+    marginTop: 10,
+    //borderStyle:"dashed", 
+    //borderWidth:1,
+    padding:10,
+    width: "80%",
+    borderRadius: 10,
+    backgroundColor: "#0A6EFF",
+    borderColor: "white"
+},
   signIn: {
       width: 150,
       height: 40,

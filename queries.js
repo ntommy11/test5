@@ -49,6 +49,19 @@ query {
     }
 }
 `;
+export const SEE_REGIST_LECTURE_ONLY = gql`
+query {
+    seeRegistLecture{
+        id
+        name
+        room
+        professer
+        code
+        division
+        subdivision
+    }
+}
+`;
 
 export const SEE_ALL_CLASSES = gql`
 query find_classes($LectureId: Int, $week: Int){
@@ -73,6 +86,19 @@ query see_all($a: Int! ){
 
 }
 `;
+
+// 같은 기능인데 꼬일까봐 따로 정의함 
+export const SEE_ALL_POST = gql`
+    query seeAllPost($boardId: Int){
+        seeAllPost(boardId: $boardId){
+            id
+            title
+            text
+            updatedAt
+            UserId
+        }
+    }
+`
 
 export const POST_VIEW = gql`
 query post_view($a: Int!){
@@ -100,3 +126,56 @@ mutation postdelete($pid: Int!){
   }
 
 `;
+
+
+export const CREATE_ACCOUNT = gql`
+    mutation createAccount($email: String!, $password: String!, $name: String!, $grade: Int){
+        createAccount(email: $email, password: $password, name: $name, grade: $grade){
+            email,
+            password,
+            name,
+            grade
+        }
+    }
+`;
+
+export const TOGGLE_LECTURE = gql`
+    mutation toggleLecture($LectureId: Int!){
+        toggleLecture(LectureId: $LectureId){
+            id
+        }
+    }
+`;
+
+export const SEE_ALL_LECTURE = gql`
+    query{
+        seeAllLecture{
+            id
+            name
+            code
+            division
+            subdivision
+            professer
+            system
+            semester
+            room
+        }
+    }
+`;
+
+export const SEARCH_LECTURE = gql`
+    query searchLecture($text: String){
+        searchLecture(text: $text){
+            id
+            name
+            code
+            division
+            subdivision
+            professer
+            system
+            semester
+            room
+        }
+    }
+`
+

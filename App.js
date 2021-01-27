@@ -4,6 +4,7 @@ import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { NavigationContainer, StackActions } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import MainScreen from './screens/MainScreen';
+import MainDrawerScreen from './screens/MainScreen';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import HeaderScreen from './screens/Header';
 import RootStackScreen from './screens/RootStackScreen';
@@ -169,7 +170,7 @@ function Sub() {
     <AuthContext.Provider value={authContext}>
       <UserContext.Provider value={loginState}>
         <NavigationContainer>
-          {loginState.token !== null ? (
+          {loginState.token !== null && loginState.email !== null? (
             <MainScreen />
           ):(
             <RootStackScreen />

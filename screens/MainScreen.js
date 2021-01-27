@@ -1,72 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { AppRegistry } from 'react-native';
 
-import { StyleSheet, Text, View, Button,TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Button,TouchableOpacity, ActivityIndicator } from 'react-native';
 import {Header} from 'react-native-elements';
 import { ApolloClient, ApolloProvider, InMemoryCache, useQuery , createHttpLink} from "@apollo/client";
 
 import { GET_CONTINENTS, GET_CONTINENT, SEE_REGIST_LECTURE, GET_U, GET_USERID } from "../queries";
 import { Appbar } from 'react-native-paper';
-import { NavigationContainer, StackActions } from '@react-navigation/native';
+import { NavigationContainer, StackActions, DrawerActions } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Ionicons } from '@expo/vector-icons';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { Ionicons, EvilIcons } from '@expo/vector-icons';
 
 import { AuthContext, UserContext,IdContext } from '../components/context';
 import AsyncStorage from '@react-native-community/async-storage';
  
+import AccountScreen from './AccountScreen';
 import HomeScreen from './HomeScreen';
-import ScheduleScreen from './ScheduleScreen';
+import ScheduleStackScreen from './ScheduleStackScreen';
 import {Community,Post,Upload,UploadHeader}from "./MainContent"
-const client = new ApolloClient({
-    uri: "https://countries.trevorblades.com",
-    cache: new InMemoryCache(),
-});
 
-const BoardType={
-  alarm:[1,2],
-  normal:[3,4]
-}
 const Tab = createBottomTabNavigator();
-
-const SampleData = () => {
-    const { loading, error, data } = useQuery(GET_CONTINENTS);
-  
-    console.log(loading);
-    console.log(data); 
-    console.log(error);   
-  
-    let template = ``;
-    if (loading) { template = <Text>`로딩중... ${loading}`</Text>; }
-    if (error) { template = <Text>`에러발생: ${error}`</Text>; }
-    if (data) {
-      template = data.continents.map(({ code, name }) =>
-        <Text key={code}>{name}</Text>
-      )
-    }
-    return (
-      <View>
-        <Text>uri: "https://countries.trevorblades.com",</Text>
-        <Text>graphql 데이터받기 샘플출력</Text>
-        {template}
-      </View>
-    )
-  };
-  const SampleData2 = () => {
-    const { loading, error, data } = useQuery(SEE_REGIST_LECTURE);
-  
-    console.log("loading: ",loading);
-    console.log("data: ",data);
-    console.log("error:",error);
-    
-    return ( 
-      <View>
-        <Text>uri: "https://countries.trevorblades.com",</Text>
-        <Text>graphql 데이터받기 샘플출력</Text>
-
-      </View>
-    )
-  } 
 
  
 const MainContent = ({navigation}) => {
@@ -99,7 +54,11 @@ export default function MainScreen(){
     fetchPolicy:"no-cache" 
   })  
 
-  if(loading) return (<Text>mainscreen컴포넌트로딩..</Text>);
+  if(loading) return (
+    <View style={{flex:1, justifyContent:"center", alignItems:"center"}}>
+      <ActivityIndicator color="blue"/>
+    </View>
+  );
   if(error) return(<Text>에러!!{error}</Text>);
   const temp ={id: data.findUserbyName[0].id, grade: data.findUserbyName[0].grade} 
     //console.log("temp",temp);
@@ -112,6 +71,7 @@ export default function MainScreen(){
           <Stack.Screen name="Upload" component={Upload} options={
             {headerRight: () => (<Button title="upload"/>
       ) }} />
+          <Stack.Screen name="Account" component={AccountScreen}/>
          </Stack.Navigator>
          </IdContext.Provider>
     );
@@ -121,13 +81,29 @@ export default function MainScreen(){
 
 
 
-export function DefaultScreen() {
+export function DefaultScreen({navigation}) {
     return (
         <>
           <Header
             placement="left"
             centerComponent={TwoLineText}
-            rightComponent={{ icon: 'person', color: '#fff', paddingTop:15 }}
+            rightComponent={
+              <View style={{flexDirection:"row"}}>
+                <TouchableOpacity 
+                  style={{marginTop:10}}
+                ><EvilIcons name="search" size={32} color="white"/>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={{marginTop:10}}
+                  onPress= {()=>{navigation.navigate("Account")}}
+                ><EvilIcons name="user" size={32} color="white"/>
+                </TouchableOpacity>
+              </View>
+
+            }
+            containerStyle={{
+              backgroundColor: '#0A6EFF'
+            }}
           />
           <Tab.Navigator
             screenOptions={({ route }) => ({
@@ -151,16 +127,24 @@ export function DefaultScreen() {
             tabBarOptions={{
               activeTintColor: '#148CFF',
               inactiveTintColor: '#dcdcdc',
+              labelPosition: 'below-icon'
             }}
+            
           >
             <Tab.Screen name="홈" component={HomeScreen} />
-            <Tab.Screen name="시간표" component={ScheduleScreen} />
+            <Tab.Screen name="시간표" component={ScheduleStackScreen} />
             <Tab.Screen name="공지" component={MainContent} />
             <Tab.Screen name="커뮤니티" component={MainContent} />
           </Tab.Navigator>
         </>
     );
 }
+
+
+
+
+
+
 const styles = StyleSheet.create({
     card2: {
       padding: 10,
