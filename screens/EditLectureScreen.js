@@ -4,7 +4,7 @@ import { StyleSheet, Text, View, Button, TouchableOpacity, ActivityIndicator,Scr
 import { ApolloClient, InMemoryCache, useQuery, ApolloProvider, useMutation } from "@apollo/client";
 import { SEE_REGIST_LECTURE_ONLY, TOGGLE_LECTURE } from '../queries';
 import { Icon } from 'react-native-elements';
-import { EvilIcons } from '@expo/vector-icons'
+import { EvilIcons, MaterialIcons } from '@expo/vector-icons'
 
 function LectureCard({navigation,lecture}){
   console.log("lecture: ", lecture);
@@ -34,7 +34,10 @@ function LectureCard({navigation,lecture}){
   return(
     <View style={styles.card2}>
       <View style={{flex:8}}>
-        <Text style={styles.lectureCardName}>{lecture.name}</Text>
+        <View style={{flexDirection:"row"}}>
+          <Text style={styles.lectureCardName}>{lecture.name}</Text>
+          {lecture.system == "VOD"? <MaterialIcons name="ondemand-video" size={16} color="red"/>: null}
+        </View>
         <View style={{marginVertical:3}}>
           <Text>{lecture.professer}</Text>
         </View>
@@ -86,7 +89,7 @@ function Main({navigation}){
 
       console.log("lectures in EditLectureScreen:", lectures);
       return(
-        <View>
+        <View style={{flex:1}}>
           <View style={{marginVertical:20}}>
             <Text style={{textAlign:"center", fontSize:20, fontWeight:"700"}}>내 강의 목록</Text>
           </View>

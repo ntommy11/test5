@@ -1,6 +1,7 @@
 import React from 'react';
 import { AuthContext, UserContext, IdContext} from '../components/context';
 import {View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { WebView } from 'react-native-webview';
 
 export default function AccountScreen(){
     const user = React.useContext(UserContext);
@@ -8,6 +9,7 @@ export default function AccountScreen(){
     const { signOut } = React.useContext(AuthContext);
   
     return(
+      
         <View>
             <View style={styles.card}>
                 <Text>계정: {user.email}</Text>
@@ -19,7 +21,7 @@ export default function AccountScreen(){
                 </TouchableOpacity>
             </View>
         </View>
-
+      
     )
   }
 

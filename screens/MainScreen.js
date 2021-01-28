@@ -21,18 +21,28 @@ import HomeScreen from './HomeScreen';
 import ScheduleStackScreen from './ScheduleStackScreen';
 import {Community,Post,Upload,UploadHeader}from "./MainContent"
 
+import { WebView } from 'react-native-webview';
+
+
 const Tab = createBottomTabNavigator();
 
  
-const MainContent = ({navigation}) => {
-
-  const num = 2;
+const MainContent = ({navigation}) => {//전체게시판 뜨도록(4개)
+  const Bid = [
+  {id: 1, name:"학교 공지사항"},
+  {id :2, name:"학생회 공지사항"},
+  {id: 3, name:"익명 게시판"},
+  {id:4, name:"중고 나눔거래"}
+  ]
   return (
     <View>
+      {Bid.map((board)=>(
      <TouchableOpacity  style={styles.line}
-        onPress={()=>{navigation.navigate("Community",{id: num})}}>
-          <Text style={{fontSize:30}}>익명게시판</Text>
+        onPress={()=>{navigation.navigate("Community",{id: board.id, name:board.name})}} key={board.id}>
+          <Text style={{fontSize:30}}>{board.name}</Text>
         </TouchableOpacity>
+      ))
+      }
   </View>
   )
 }
@@ -47,6 +57,24 @@ const TwoLineText = () =>{
 
   const Stack =createStackNavigator();
  
+
+
+
+const URI_LMS = "https://future.seoultech.ac.kr/login/index.php";
+const URI_HOME  = "https://m-disciplinary.seoultech.ac.kr/";
+const URI_PORTAL = "http://portal.seoultech.ac.kr/";
+
+
+const WebviewLMS = ()=>{
+  return <WebView source={{uri:URI_LMS}}/>
+}
+const WebviewHome = ()=>{
+  return <WebView source={{uri:URI_HOME}}/>
+}
+const WebviewPortal = ()=>{
+  return <WebView source={{uri:URI_PORTAL}}/>
+}
+
 export default function MainScreen(){
   const userInfo = React.useContext(UserContext);
   const{loading, error, data} = useQuery(GET_USERID,{
@@ -72,11 +100,12 @@ export default function MainScreen(){
             {headerRight: () => (<Button title="upload"/>
       ) }} />
           <Stack.Screen name="Account" component={AccountScreen}/>
+          <Stack.Screen name="WebviewLMS" component={WebviewLMS}/>
+          <Stack.Screen name="WebviewHome" component={WebviewHome}/>
+          <Stack.Screen name="WebviewPortal" component={WebviewPortal}/>
          </Stack.Navigator>
          </IdContext.Provider>
     );
-
-
   }
 
 

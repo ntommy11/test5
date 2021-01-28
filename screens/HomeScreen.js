@@ -1,10 +1,12 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Button, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, Button, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import { ApolloClient, InMemoryCache, useQuery, ApolloProvider } from "@apollo/client";
 import { AuthContext, UserContext } from '../components/context';
-import { SEE_REGIST_LECTURE, SEE_ALL_POST } from '../queries';
+import { SEE_REGIST_LECTURE, SEE_ALL_POST, POST_LOAD } from '../queries';
 import { useIsFocused, useFocusEffect } from '@react-navigation/native';
 import { Ionicons, EvilIcons } from '@expo/vector-icons';
+import { WebView } from 'react-native-webview'
+import { ScrollView } from 'react-native-gesture-handler';
 
 const NOW = new Date();
 const TIMEZONE = NOW.getTimezoneOffset()*60000;
@@ -145,9 +147,11 @@ const Notification = ({navigation}) => {
 }
 
 const Notification2 = ({navigation}) => {
-  const { loading, error, data } = useQuery(SEE_ALL_POST,{
+  const { loading, error, data } = useQuery(POST_LOAD,{
     variables:{
-      boardId:2
+      bid:2,
+      snum: 0,
+      tnum: 2,
     }
   });
 
@@ -164,9 +168,9 @@ const Notification2 = ({navigation}) => {
     )
   }
   if(data){
-    let posts = data.seeAllPost;
+    let posts = data.loadPost;
     console.log("posts: ", posts);
-    if(posts.length<2){
+    if(posts.length==0){
       return(
         <View style={styles.card2}>
           <Text>공지가 없습니다</Text>
@@ -175,16 +179,24 @@ const Notification2 = ({navigation}) => {
     }
     return (
       <View style={styles.card2}>
-        <TouchableOpacity 
-          style={styles.notificationList} 
-          onPress= {()=>{navigation.navigate("Post",{id:posts[0].id, title: posts[0].title, text:posts[0].text, userId: posts[0].UserId})}}
-        ><Text style={{ color: "#787878" }}>{posts[0].title}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.notificationList} 
-          onPress= {()=>{navigation.navigate("Post",{id:posts[1].id, title: posts[1].title, text:posts[1].text, userId: posts[1].UserId})}}
-        ><Text style={{ color: "#787878" }}>{posts[1].title}</Text>
-        </TouchableOpacity>
+        {
+          posts.map((post, index)=>{
+            return(
+              <TouchableOpacity 
+                key={index}
+                style={styles.notificationList} 
+                onPress= {()=>{navigation.navigate("Post",{
+                  id:post.id, 
+                  title: post.title, 
+                  text:post.text, 
+                  UserId: post.UserId,
+                  Comment: post.Comment
+                })}}>
+                <Text style={{ color: "#787878" }}>{post.title} {post.text}</Text>
+              </TouchableOpacity>
+            )
+          })
+        }
       </View>
     )
   }
@@ -268,7 +280,7 @@ function Main({navigation}){
     console.log(class_list[current_class]);
     console.log(class_list[next_class]);
     return(
-      <View>
+      <ScrollView style={{flex:1}}>
       <CardInfo current_class={class_list[current_class]}/>
 
       <Text style={{ textAlign: "left", paddingLeft: 30, fontWeight: "700", paddingTop: 10 }}>다음 일정</Text>
@@ -282,7 +294,27 @@ function Main({navigation}){
         <Text style={{ textAlign: "left", paddingLeft: 30, fontWeight: "700", paddingTop: 10 }}>학생회 공지사항</Text>
       </TouchableOpacity>
       <Notification2 navigation={navigation}/>
-    </View>
+      <View style={{flex:1,flexDirection:"row", alignItems:"center", justifyContent:"center", marginHorizontal:20}}>
+        
+        <View style={styles.webview}>
+          <TouchableOpacity onPress={()=>navigation.navigate("WebviewLMS")}>
+            {/*<Image source={require('../assets/lms.png')} resizeMode="stretch"/>*/}
+            <Text style={styles.webviewText}>LMS</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.webview}>
+          <TouchableOpacity onPress={()=>navigation.navigate("WebviewHome")}>
+            <Text style={styles.webviewText}>학교홈</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.webview}>
+          <TouchableOpacity onPress={()=>navigation.navigate("WebviewPortal")}>
+            {/*<Image source={require('../assets/portal.png')} resizeMode="stretch"/>*/}
+            <Text style={styles.webviewText}>통합정보시스템</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ScrollView>
     )
   }
 
@@ -398,4 +430,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  webview:{
+    margin: 5,
+    padding: 5,
+    flex: 1,
+    alignItems:"center",
+    justifyContent: "center"
+  },
+  webviewText:{
+    textAlign: "center",
+    fontWeight: "700",
+    color: "#323232"
+  },
+  logo:{
+    width: 32,
+    height: 32,
+  }
 });

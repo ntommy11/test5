@@ -1,6 +1,36 @@
 import React from 'react';
 import {gql} from 'apollo-boost';
 
+export const typedef =gql`
+type Comment{
+  id   :   Int 
+  text :   String
+  createdAt:String
+  updatedAt:String
+  Post :   Post
+  PostId :  Int
+  User  :  User
+  UserId : Int
+}
+type Post{
+  id   :   Int 
+  title  :  String
+  text :   String
+  createdAt:String
+  updatedAt:String
+  Comment :[Comment]
+  UserId : Int
+  User: User
+  BoardId: Int
+  Board: Board
+}
+type Board {
+  id: Int
+  type: Int
+  Posts: [Post]
+  }
+`;
+
 export const GET_CONTINENTS = gql`
     query{
         continents{
@@ -40,6 +70,7 @@ query {
         id
         name
         room
+        system
         classes{
             VOD
             startTime
@@ -59,6 +90,7 @@ query {
         code
         division
         subdivision
+        system
     }
 }
 `;
@@ -179,3 +211,49 @@ export const SEARCH_LECTURE = gql`
     }
 `
 
+export const POST_LOAD = gql `
+query postload($bid: Int!, $snum: Int!, $tnum:Int!){
+    loadPost(boardId:$bid, skipNum:$snum, takeNum:$tnum){
+      id
+      title
+      text 
+      UserId
+      createdAt
+      Comment{
+        id
+        text
+        createdAt
+        UserId
+      }
+  }
+}
+`;
+
+export const COMMENT_UPLOAD = gql`
+mutation commentcreate($pid:Int!, $text:String!){
+    createComment(PostId:$pid ,text:$text){
+      id
+    }
+    
+  }
+`;
+
+export const COMMENT_DELETE = gql`
+mutation deletecomment($cid : Int!){
+    deleteComment(CommentId:$cid){
+      id
+    }
+  }
+`;
+
+
+export const COMMENT_LOAD = gql`
+query commentload($pid:Int!, $snum:Int!, $tnum:Int!){
+  loadComment(postId:$pid , skipNum:$snum, takeNum:$tnum){
+    text
+    id
+    UserId
+    createdAt
+  }
+}
+`;

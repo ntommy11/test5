@@ -4,7 +4,7 @@ import { StyleSheet, Text, View, Button, TouchableOpacity, ActivityIndicator,Scr
 import { ApolloClient, InMemoryCache, useQuery, ApolloProvider, useMutation } from "@apollo/client";
 import { SEE_REGIST_LECTURE_ONLY, TOGGLE_LECTURE, SEARCH_LECTURE } from '../queries';
 import { SearchBar } from 'react-native-elements';
-import { EvilIcons } from '@expo/vector-icons'
+import { EvilIcons, MaterialIcons } from '@expo/vector-icons'
 
 function LectureCard({lecture,registered}){
   console.log("lecture: ", lecture);
@@ -29,7 +29,10 @@ function LectureCard({lecture,registered}){
     return(
       <View style={styles.card2}>
         <View style={{flex:8}}>
-          <Text style={styles.lectureCardName}>{lecture.name}</Text>
+          <View style={{flexDirection:"row"}}>
+            <Text style={styles.lectureCardName}>{lecture.name}</Text>
+            {lecture.system == "VOD"? <MaterialIcons name="ondemand-video" size={16} color="red"/>: null}
+          </View>
           <View style={{marginVertical:3}}>
             <Text>{lecture.professer}</Text>
           </View>
@@ -46,7 +49,10 @@ function LectureCard({lecture,registered}){
   return(
     <View style={styles.card2}>
       <View style={{flex:8}}>
-        <Text style={styles.lectureCardName}>{lecture.name}</Text>
+        <View style={{flexDirection:"row"}}>
+          <Text style={styles.lectureCardName}>{lecture.name}</Text>
+          {lecture.system == "VOD"? <MaterialIcons name="ondemand-video" size={16} color="red"/>: null}
+        </View>
         <View style={{marginVertical:3}}>
           <Text>{lecture.professer}</Text>
         </View>
