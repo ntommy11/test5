@@ -133,9 +133,12 @@ export const SEE_ALL_POST = gql`
 `
 
 export const POST_VIEW = gql`
-query post_view($a: Int!){
-    seeAllComment(postId: $a){
+query post_view($pid: Int!){
+    seeAllComment(postId: $pid){
       text
+      id
+      UserId
+      createdAt
     }
 }
 `;

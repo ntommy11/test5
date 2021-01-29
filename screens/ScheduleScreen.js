@@ -7,14 +7,42 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SearchBar } from 'react-native-elements';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 
-const Stack = createStackNavigator();
 
 const NOW = new Date();
 const TIMEZONE = NOW.getTimezoneOffset()*60000;
 const NUM_OF_WEEKS = 16;
 
+Date.prototype.getWeek = function (dowOffset) {
+  /*getWeek() was developed by Nick Baicoianu at MeanFreePath: http://www.meanfreepath.com */
+
+  dowOffset = typeof(dowOffset) == 'number' ? dowOffset : 0; //default dowOffset to zero
+  var newYear = new Date(this.getFullYear(),0,1);
+  var day = newYear.getDay() - dowOffset; //the day of week the year begins on
+  day = (day >= 0 ? day : day + 7);
+  var daynum = Math.floor((this.getTime() - newYear.getTime() -
+    (this.getTimezoneOffset()-newYear.getTimezoneOffset())*60000)/86400000) + 1;
+  var weeknum;
+  //if the year starts before the middle of a week
+  if(day < 4) {
+    weeknum = Math.floor((daynum+day-1)/7) + 1;
+    if(weeknum > 52) {
+      let nYear = new Date(this.getFullYear() + 1,0,1);
+      let nday = nYear.getDay() - dowOffset;
+      nday = nday >= 0 ? nday : nday + 7;
+      /*if the next year starts before the middle of
+        the week, it is week #1 of that year*/
+      weeknum = nday < 4 ? 1 : 53;
+    }
+  }
+  else {
+    weeknum = Math.floor((daynum+day-1)/7);
+  }
+  return weeknum;
+};
+
 function get_currenet_week(){
-  return 3;
+  const START_WEEK = -6;
+  return NOW.getWeek()-START_WEEK;
 }
 
 // 학기 날짜 데이터 초기화
@@ -303,7 +331,7 @@ function Main({navigation}) {
     console.log("loading...");
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#1478FF"/>
       </View>
     )    
   }
@@ -334,7 +362,7 @@ function Main({navigation}) {
     })
     console.log(class_list);
     const week = get_currenet_week();
-    const month = 9;
+    const month = NOW.getMonth()+1;
     return (
       <View style={{flex:1}}>
         <View style={{flex:5}}>

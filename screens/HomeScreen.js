@@ -86,70 +86,11 @@ const CardInfo2 = ({next_class}) => {
   )
 }
 
-const Notification = ({navigation}) => {
 
-  const { loading, error, data, refetch } = useQuery(SEE_ALL_POST,{
-    variables:{
-      boardId:1
-    }
-  });
-
-
-
-  console.log("Notification loading: ",loading);
-  console.log("Notification error  : ", error );
-  
-  
-
-  if(loading){
-    return(
-      <View style={styles.card2}>
-        <ActivityIndicator color="blue"/>
-      </View>
-    )
-  }
-  if(data){
-    let posts = data.seeAllPost;
-    console.log("posts: ", posts);
-    if(posts.length<2){
-      return(
-        <View style={styles.card2}>
-          <Text style={{ color: "#787878" }}>공지가 없습니다</Text>
-        </View>
-      )
-    }
-    return (
-      <View style={styles.card2}>
-        <TouchableOpacity style={styles.notificationList} 
-          onPress= {()=>{navigation.navigate("Post",{id:posts[0].id, title: posts[0].title, text:posts[0].text, userId: posts[0].UserId})}}
-        >
-          <Text style={{ color: 'blue' }}>
-            {posts[0].title}
-          </Text>
-          <Text style={{ color: "#787878" }}>{posts[0].text}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.notificationList} onPress={() => alert("notification")}>
-          <Text style={{ color: 'blue' }}>
-            {posts[1].title}
-          </Text>
-          <Text style={{ color: "#787878" }}>{posts[1].text}</Text>
-        </TouchableOpacity>
-      </View>
-    )
-  }
-  if(error){
-    return(
-      <View style={styles.card2}>
-        <Text style={{ color: "#787878" }}>불러오기 실패</Text>
-      </View>
-    )
-  }
-}
-
-const Notification2 = ({navigation}) => {
+const Notification = ({navigation, bid}) => {
   const { loading, error, data } = useQuery(POST_LOAD,{
     variables:{
-      bid:2,
+      bid: bid,
       snum: 0,
       tnum: 2,
     }
@@ -163,7 +104,7 @@ const Notification2 = ({navigation}) => {
   if(loading){
     return(
       <View style={styles.card2}>
-        <ActivityIndicator color="blue"/>
+        <ActivityIndicator color="#1478FF"/>
       </View>
     )
   }
@@ -223,7 +164,7 @@ function Main({navigation}){
     console.log("error  : ", error );
     return(
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#1478FF" />
         <Text>{error}</Text>
       </View>
     )
@@ -289,11 +230,11 @@ function Main({navigation}){
       <TouchableOpacity style={{width: 100 }} onPress={() => alert("공지사항 더보기")}>
         <Text style={{ textAlign: "left", paddingLeft: 30, fontWeight: "700", paddingTop: 10 }}>공지사항</Text>
       </TouchableOpacity>
-      <Notification navigation={navigation}/>
+      <Notification navigation={navigation} bid={1}/>
       <TouchableOpacity style={{width: 120}} onPress={() => alert("학생회 공지사항 더보기")}>
         <Text style={{ textAlign: "left", paddingLeft: 30, fontWeight: "700", paddingTop: 10 }}>학생회 공지사항</Text>
       </TouchableOpacity>
-      <Notification2 navigation={navigation}/>
+      <Notification navigation={navigation} bid={2}/>
       <View style={{flex:1,flexDirection:"row", alignItems:"center", justifyContent:"center", marginHorizontal:20}}>
         
         <View style={styles.webview}>

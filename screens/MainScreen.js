@@ -84,7 +84,7 @@ export default function MainScreen(){
 
   if(loading) return (
     <View style={{flex:1, justifyContent:"center", alignItems:"center"}}>
-      <ActivityIndicator color="blue"/>
+      <ActivityIndicator size="large" color="#1478FF"/>
     </View>
   );
   if(error) return(<Text>에러!!{error}</Text>);

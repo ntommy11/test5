@@ -21,8 +21,11 @@ const SplashScreen = ({navigation}) => {
     return (
         <View style={styles.container}>
         <View style={styles.header}>
-            {//<Image source={require('../assets/logo2.png')} style={styles.logo} resizeMode="stretch"/>
+            {<Image source={require('../assets/logo3.png')}/>
             }
+            <View style={{marginTop:10}}>
+                <Text style={{fontWeight:"800", color:"white"}}>미래융합대학</Text>
+            </View>
         </View>
         <Animatable.View style={styles.footer} animation="fadeInUpBig">
             <Text style={styles.title}>학교생활도우미</Text>
@@ -37,7 +40,7 @@ const SplashScreen = ({navigation}) => {
 export default SplashScreen;
 
 const {height} = Dimensions.get("screen");
-const height_logo = height * 0.38;
+const height_logo = height * 0.18;
 
 const styles = StyleSheet.create({
   container: {
