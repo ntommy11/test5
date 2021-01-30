@@ -182,6 +182,23 @@ function Sub() {
 
 export default function App(){
   //AsyncStorage.clear();
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+  
+  // Second, call the method
+  /*
+  Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'Look at that notification',
+      body: "I'm so proud of myself!",
+    },
+    trigger: null,
+  });*/
   return(
     <ApolloProvider client={client}>
       <Sub />

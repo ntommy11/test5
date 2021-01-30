@@ -147,10 +147,12 @@ const Notification = ({navigation, bid}) => {
     }
     AsyncStorage.getItem('lastNotif', (err,res)=>{
       if (Number(res) < Number(posts[0].createdAt)){
+        console.log("공지 알림 등록!");
         Notifications.scheduleNotificationAsync({
           content:{
             title: '새로운 공지 알림',
-            body: `아직 확인하지 않은 새로운 공지가 있습니다. ${posts[0].title}`
+            body: `아직 확인하지 않은 새로운 공지가 있습니다. ${posts[0].title}`,
+            sound: 'default'
           },
           trigger: null,
         })
@@ -233,6 +235,7 @@ function Main({navigation}){
     for(let i=0; i<lectures.length; i++){
       let num_of_classes = lectures[i].classes.length;
       for(let j=0; j<num_of_classes; j++){
+        if(lectures[i].classes[j].VOD) continue;
         let start_time = new Date(Number(lectures[i].classes[j].startTime)+TIMEZONE);
         //console.log("timezone offset: ", start_time.getTimezoneOffset());
         let end_time = new Date(Number(lectures[i].classes[j].endTime)+TIMEZONE);
@@ -253,7 +256,7 @@ function Main({navigation}){
         return a.start_time.getTime() - b.start_time.getTime();
       })
     } 
-    //console.log("class_list: ",class_list);
+    console.log("HomeScreen::Main::class_list: ",class_list);
     // 현재 시간 포함 가장 가까운 수업을 찾는다.
     let current_class = 0;
     let next_class = 0;

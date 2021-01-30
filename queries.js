@@ -64,12 +64,17 @@ query
   }
 `;
 
+// 2021.01.30 수정됨 (field 추가) 
 export const SEE_REGIST_LECTURE = gql`
 query {
     seeRegistLecture{
         id
         name
         room
+        professer
+        code
+        division
+        subdivision
         system
         classes{
             VOD
@@ -210,6 +215,12 @@ export const SEARCH_LECTURE = gql`
             system
             semester
             room
+            classes{
+                VOD
+                startTime
+                endTime
+                week
+            }
         }
     }
 `

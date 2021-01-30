@@ -7,6 +7,12 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SearchBar } from 'react-native-elements';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 
+const colors = [
+  "#AFFFEE", "#00F5FF", "#FFE4E1", "#FFFF96" , "#FFDAB9", "#FAC6C6", "#82F9B7"
+]
+let colorIndex = 0;
+let colorMap = {};
+colorMap['default'] = "transparent";
 
 const NOW = new Date();
 const TIMEZONE = NOW.getTimezoneOffset()*60000;
@@ -182,14 +188,14 @@ function WeekdayClassbox({class_name}){
   console.log("class_name in WeekdayClassbox:", class_name);
   if (class_name){
     return(
-      <View style={styles.classbox}>
+      <View style={styles.classbox(class_name)}>
         <Text style={styles.classboxText}>{class_name}</Text>
       </View>
     )
   }
   else{
     return(
-      <View style={styles.classbox}>
+      <View style={styles.classbox("default")}>
       </View>
     )
   }
@@ -198,16 +204,21 @@ function WeekdayClassbox({class_name}){
 function WeekendClassbox({class_names}){
   console.log("class_names in WeekdayClassbox:", class_names);
   const len = class_names.length;
+  let names = ['-','-','-'];
+  for(let i=0; i<len; i++){
+    names[i] = class_names[i];
+  }
+
   return(
     <View style={styles.classbox2}>
-      <View style={{flex:1, /*borderStyle:"dashed", borderWidth:1 ,*/justifyContent:"center", paddingVertical:2}}>
-        <Text style={styles.classboxTextsmall}>{len>0? `${class_names[0]}`:"-"}</Text>
+      <View style={{flex:1, backgroundColor: colorMap[names[0]],/*borderStyle:"dashed", borderWidth:1 ,*/justifyContent:"center", paddingVertical:2}}>
+        <Text style={styles.classboxTextsmall}>{names[0]}</Text>
       </View>
-      <View style={{flex:1, /*borderStyle:"dashed", borderWidth:1 ,*/justifyContent:"center", paddingVertical:2}}>
-        <Text style={styles.classboxTextsmall}>{len>1? `${class_names[1]}`:"-"}</Text>
+      <View style={{flex:1, backgroundColor: colorMap[names[1]],/*borderStyle:"dashed", borderWidth:1 ,*/justifyContent:"center", paddingVertical:2}}>
+        <Text style={styles.classboxTextsmall}>{names[1]}</Text>
       </View>
-      <View style={{flex:1, /*borderStyle:"dashed", borderWidth:1 ,*/justifyContent:"center", paddingVertical:2}}>
-        <Text style={styles.classboxTextsmall}>{len>2? `${class_names[2]}`:"-"}</Text>
+      <View style={{flex:1, backgroundColor: colorMap[names[2]],/*borderStyle:"dashed", borderWidth:1 ,*/justifyContent:"center", paddingVertical:2}}>
+        <Text style={styles.classboxTextsmall}>{names[2]}</Text>
       </View>
     </View>
   )
@@ -224,7 +235,7 @@ function MonthlyBody({classes}){
         weeks.map((week,index)=>{
           return(
             <View key={index} style={{flexDirection:"row", flex:1}}>
-              <View style={{flex:1, /*borderStyle:"dashed", borderWidth:1,*/ justifyContent:"center",borderTopWidth: 1,borderColor:"#dcdcdc"}}> 
+              <View style={{flex:1, backgroundColor:"#EBFBFF", justifyContent:"center",borderTopWidth: 1,borderColor:"#dcdcdc"}}> 
                 <Text style={{textAlign:"center", fontSize:10, fontWeight:"900"}}>{week}주차</Text>
               </View>
               <View style={{flexDirection:"row", flex:5}}>
@@ -341,6 +352,8 @@ function Main({navigation}) {
     console.log("length: ", lectures.length);
     let class_list = [];
     for(let i=0; i<lectures.length; i++){
+      // 색깔값 지정 
+      colorMap[lectures[i].name] = colors[colorIndex++];
       let num_of_classes = lectures[i].classes.length;
       for(let j=0; j<num_of_classes; j++){
         let start_time = new Date(Number(lectures[i].classes[j].startTime)+TIMEZONE);
@@ -432,6 +445,7 @@ export default function ScheduleScreen({navigation}) {
   );
 */
   if(isFocused){
+    colorIndex=0;
     return (
       <ApolloProvider client={client}>
         <Main navigation={navigation}/>
@@ -452,7 +466,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 6,
   },
-  classbox:{
+  classbox: name => ({
     paddingHorizontal: 3,
     paddingVertical: 5,
     justifyContent: "center",
@@ -460,8 +474,9 @@ const styles = StyleSheet.create({
     borderLeftWidth: 1,
     borderTopWidth: 1,
     borderColor: "#dcdcdc",
+    backgroundColor: colorMap[name],
     flex: 1
-  },
+  }),
   classbox2:{
     justifyContent: "center",
     //borderStyle: "dashed",

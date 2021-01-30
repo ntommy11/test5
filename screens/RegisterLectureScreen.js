@@ -2,14 +2,31 @@ import React from 'react';
 import { UserContext } from '../components/context';
 import { StyleSheet, Text, View, Button, TouchableOpacity, ActivityIndicator,ScrollView, Alert } from 'react-native';
 import { ApolloClient, InMemoryCache, useQuery, ApolloProvider, useMutation } from "@apollo/client";
-import { SEE_REGIST_LECTURE_ONLY, TOGGLE_LECTURE, SEARCH_LECTURE } from '../queries';
+import { SEE_REGIST_LECTURE, SEE_REGIST_LECTURE_ONLY, TOGGLE_LECTURE, SEARCH_LECTURE } from '../queries';
 import { SearchBar } from 'react-native-elements';
 import { EvilIcons, MaterialIcons } from '@expo/vector-icons'
+import { validate } from 'graphql';
 
-function LectureCard({lecture,registered}){
+const NOW = new Date();
+const TIMEZONE = NOW.getTimezoneOffset()*60000;
+
+
+function LectureCard({lecture, registered, class_list}){
   console.log("lecture: ", lecture);
   const [reg, setReg] = React.useState(registered);
   const [toggleLectureMutation] = useMutation(TOGGLE_LECTURE)
+
+  const validate = ()=>{
+    for(let i=0; i<lecture.classes.length; i++){
+      if(lecture.classes[i].VOD == true) continue;
+      let start_time = new Date(Number(lecture.classes[i].startTime)+TIMEZONE);
+      //let end_time = new Date(Number(lecture.classes[i].endTime)+TIMEZONE);
+      for (let j=0; j<class_list.length; j++){
+        if (class_list[j].start_time < start_time && start_time < class_list[j].end_time) return false;
+      }
+    }
+    return true;
+  }
 
   const add = async () =>{
     try{
@@ -69,7 +86,8 @@ function LectureCard({lecture,registered}){
               {
                 text: "예",
                 onPress: () => {
-                  add();
+                  validate()?
+                    add():Alert.alert("이미 수강하는 강의와 시간이 겹칩니다");
                 },
                 style: "cancel"
               },
@@ -84,7 +102,8 @@ function LectureCard({lecture,registered}){
   )
 }
 
-function SearchResult({text, registeredId}){
+function SearchResult({text, registeredId, class_list}){
+
   console.log("SearchResult::text=",text)
   const { data, loading, error } = useQuery(SEARCH_LECTURE, {
     variables: {
@@ -118,7 +137,7 @@ function SearchResult({text, registeredId}){
               registered = true;
             }
             return(
-              <LectureCard key={index} lecture={lecture} registered={registered}/>
+              <LectureCard key={index} lecture={lecture} registered={registered} class_list={class_list}/>
             )
           })
         }
@@ -135,7 +154,7 @@ function Main({navigation}){
     const handleTextChange = (val)=>{
       setText(val);
     }
-    const { data, loading, error} = useQuery(SEE_REGIST_LECTURE_ONLY);
+    const { data, loading, error} = useQuery(SEE_REGIST_LECTURE);
     if(loading){
       return (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -152,6 +171,26 @@ function Main({navigation}){
     }
     if(data){
       let lectures = data.seeRegistLecture;
+      console.log("RegisterLectureScreen::Main::lectures=",lectures);
+      let class_list = []; 
+      for(let i=0; i<lectures.length; i++){
+        let num_of_classes = lectures[i].classes.length;
+        for(let j=0; j<num_of_classes; j++){
+          if(lectures[i].classes[j].VOD) continue; // VOD는 시간표 겹치는지 체크할 필요 없다.
+          let start_time = new Date(Number(lectures[i].classes[j].startTime)+TIMEZONE);
+          let end_time = new Date(Number(lectures[i].classes[j].endTime)+TIMEZONE);
+          let class_obj = {
+            name: lectures[i].name,
+            room: lectures[i].room,
+            start_time: start_time,
+            end_time: end_time,
+            week: lectures[i].classes[j].week,
+            vod: lectures[i].classes[j].VOD
+          }
+          class_list.push(class_obj);
+        }
+      }
+      console.log("RegisterLectureScreen::Main::class_list=", class_list);
       let registeredId = new Array();
       for(let i=0; i<lectures.length; i++){
         registeredId.push(lectures[i].id);
@@ -166,7 +205,7 @@ function Main({navigation}){
             onChangeText={(val)=>handleTextChange(val)}
             value={text}
           />
-          <SearchResult text={text} registeredId={registeredId}/>
+          <SearchResult text={text} registeredId={registeredId} class_list={class_list}/>
           <View style={{alignItems:"center", justifyContent:"center"}}>
             <TouchableOpacity style={styles.button} onPress={()=>navigation.navigate('ScheduleScreen')}>
               <Text style={{fontSize:20, color:"white"}}>돌아가기</Text>

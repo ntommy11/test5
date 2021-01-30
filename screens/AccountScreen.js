@@ -67,8 +67,8 @@ function Sub({class_list}){
         let id = await Notifications.scheduleNotificationAsync({
           content:{
             title: '수업 알림!',
-            body: `${val}분 뒤에 ${class_list[i].name}(${class_list[i].room}) ${month}/${date} ${start_time}~${end_time}수업이 있습니다.
-                   `
+            body: `${val}분 뒤에 ${class_list[i].name}(${class_list[i].room}) ${month}/${date} ${start_time}~${end_time}수업이 있습니다.`,
+            sound: 'default'
           },
           trigger,
         })
