@@ -1,29 +1,187 @@
 import React from 'react';
 import { AuthContext, UserContext, IdContext} from '../components/context';
-import {View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { WebView } from 'react-native-webview';
+import {View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import SwitchSelector from 'react-native-switch-selector';
+import { SEE_REGIST_LECTURE } from '../queries';
+import { ApolloClient, InMemoryCache, useQuery, ApolloProvider } from "@apollo/client";
+
+import * as Notifications from 'expo-notifications';
+import AsyncStorage from '@react-native-community/async-storage';
+
+
+const NOW = new Date();
+const TIMEZONE = NOW.getTimezoneOffset()*60000;
+
+const options = [
+  { label: '끄기', value: 0},
+  { label: '5분', value: 5 },
+  { label: '10분', value: 10 },
+  { label: '15분', value: 15 },
+  { label: '20분', value: 20 },
+  { label: '30분', value: 30 },
+  { label: '60분', value: 60 },
+
+];
+
+
+
+
+function Sub({class_list}){
+  const user = React.useContext(UserContext);
+  const user_meta = React.useContext(IdContext);
+  const { signOut } = React.useContext(AuthContext);
+  
+  const [pushInit, setPushInit] = React.useState(null);
+  AsyncStorage.getItem("pushInitIndex", (err,res)=>{
+    console.log("pushInitIndex res:", res);
+    setPushInit(Number(res));
+  })
+
+  const setNotification = async (val) =>{
+    let initIndex = "0";
+    switch(val){
+      case 5: initIndex="1"; break;
+      case 10: initIndex="2"; break;
+      case 15: initIndex="3"; break;
+      case 20: initIndex="4"; break;
+      case 30: initIndex="5"; break;
+      case 60: initIndex="6"; break;
+      default: initIndex="0";
+    }
+    AsyncStorage.setItem("pushInitIndex", initIndex, ()=>{console.log(`pushInitIndex set: ${initIndex}`)})
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    if (val>0){
+      for(let i=0; i<class_list.length; i++){
+        if(class_list[i].start_time < NOW) continue;
+
+        let trigger = new Date(class_list[i].start_time.getTime() - val*60*1000);
+
+        let month = class_list[i].start_time.getMonth()+1;
+        let date = class_list[i].start_time.getDate();
+        let sH = class_list[i].start_time.getHours();
+        let sM = class_list[i].start_time.getMinutes();
+        let eH = class_list[i].end_time.getHours();
+        let eM = class_list[i].end_time.getMinutes();
+        let start_time= `${sH>=10?sH:`0${sH}`}:${sM>=10?sM:`0${sM}`}`;
+        let end_time= `${eH>=10?eH:`0${eH}`}:${eM>=10?eM:`0${eM}`}`;
+        let id = await Notifications.scheduleNotificationAsync({
+          content:{
+            title: '수업 알림!',
+            body: `${val}분 뒤에 ${class_list[i].name}(${class_list[i].room}) ${month}/${date} ${start_time}~${end_time}수업이 있습니다.
+                   `
+          },
+          trigger,
+        })
+      }
+    }
+  }
+
+  return(
+      <View>
+          <View style={styles.card}>
+              <View style={styles.item}>
+                <Text style={styles.title}>계정: {user.email}</Text>
+              </View>
+              <View style={styles.item}> 
+                <Text style={styles.title}>등급: {user_meta.grade}</Text>
+              </View>
+              <View style={styles.item}>
+                <Text style={styles.title}>푸쉬 알림 설정</Text> 
+                <View style={{marginVertical: 5}}>
+                  {
+                    pushInit != null? 
+                    <SwitchSelector 
+                      options={options} 
+                      initial={pushInit}
+                      backgroundColor="#eeeeee"
+                      buttonColor="#1478FF"
+                      fontSize={18}
+                      onPress={val => setNotification(val)}  
+                    />
+                    :
+                    null
+                  }
+                </View>
+              </View>
+
+
+          </View>
+          <View style={{alignItems:"center", justifyContent:"center"}}>
+              <TouchableOpacity style={styles.button} onPress={()=>signOut()}>
+                  <Text style={{fontSize:20, color:"white"}}>로그아웃</Text>
+              </TouchableOpacity>
+          </View>
+
+      </View>
+    
+  )
+}
+
+
+
+function Main(){
+  const { loading, error, data } = useQuery(SEE_REGIST_LECTURE);
+
+  console.log("loading: ",loading);
+  console.log("data   : " , data);
+  console.log("error  : ", error );
+
+  if(loading){
+    console.log("loading...");
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#1478FF"/>
+      </View>
+    )    
+  }
+  if(data){
+    // 데이터 전처리. 
+    let lectures = data.seeRegistLecture;
+    console.log("length: ", lectures.length);
+    let class_list = [];
+    for(let i=0; i<lectures.length; i++){
+      let num_of_classes = lectures[i].classes.length;
+      for(let j=0; j<num_of_classes; j++){
+        let start_time = new Date(Number(lectures[i].classes[j].startTime)+TIMEZONE);
+        let end_time = new Date(Number(lectures[i].classes[j].endTime)+TIMEZONE);
+        let class_obj = {
+          name: lectures[i].name,
+          room: lectures[i].room,
+          start_time: start_time,
+          end_time: end_time,
+          week: lectures[i].classes[j].week,
+          vod: lectures[i].classes[j].VOD
+        }
+        class_list.push(class_obj);
+      }
+    }
+    // 수업을 빠른 시간순으로 정렬 
+    class_list.sort((a,b)=>{
+      return a.start_time.getTime() - b.start_time.getTime();
+    })
+    console.log(class_list);
+    return (
+      <Sub class_list = {class_list} />
+    );
+  }
+}
 
 export default function AccountScreen(){
-    const user = React.useContext(UserContext);
-    const user_meta = React.useContext(IdContext);
-    const { signOut } = React.useContext(AuthContext);
+  const userInfo = React.useContext(UserContext);
+  const client = new ApolloClient({
+    uri: "http://52.251.50.212:4000/",
+    cache: new InMemoryCache(),
+    headers: {
+      Authorization: `Bearer ${userInfo.token}`
+    }
+  });
+  return (
+    <ApolloProvider client={client}>
+      <Main/>
+    </ApolloProvider>
+  )
+}
   
-    return(
-      
-        <View>
-            <View style={styles.card}>
-                <Text>계정: {user.email}</Text>
-                <Text>등급: {user_meta.grade}</Text>
-            </View>
-            <View style={{alignItems:"center", justifyContent:"center"}}>
-                <TouchableOpacity style={styles.button} onPress={()=>signOut()}>
-                    <Text style={{fontSize:20, color:"white"}}>로그아웃</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
-      
-    )
-  }
 
   const styles = StyleSheet.create({
     classboxText:{
@@ -74,7 +232,7 @@ export default function AccountScreen(){
     },
     card: {
       backgroundColor: "white",
-      marginVertical: 5,
+      marginVertical: 25,
       marginHorizontal: 25,
       borderWidth: 1,
       borderColor: "#dcdcdc",
@@ -94,9 +252,8 @@ export default function AccountScreen(){
       fontSize: 20,
       textAlign: "center",
     },
-    subject: {
-      textAlign: "center",
-      fontSize: 30,
+    title: {
+      fontSize: 17,
       fontWeight: "600",
     },
     location: {
@@ -136,4 +293,10 @@ export default function AccountScreen(){
       backgroundColor: "#1478FF",
       borderColor: "white"
   },
+    item:{
+      marginVertical: 10,
+      marginHorizontal: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: "#eeeeee"
+    }
   });

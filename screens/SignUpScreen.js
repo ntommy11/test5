@@ -57,6 +57,9 @@ const Main = ({ navigation }) => {
     }
 
     const handleSignup = async (email, username, password, repassword) => {
+        if (username == ''){
+            alert("이름을 입력하세요");
+        }
         if (password != repassword) {
             alert("비밀번호를 확인해주세요")
         } else {

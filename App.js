@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
-import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, ActivityIndicator, Alert } from 'react-native';
 import { NavigationContainer, StackActions } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import MainScreen from './screens/MainScreen';
@@ -12,6 +12,8 @@ import RootStackScreen from './screens/RootStackScreen';
 import { AuthContext, UserContext } from './components/context';
 import AsyncStorage from '@react-native-community/async-storage';
 
+import * as Notifications from 'expo-notifications';
+
 // 통신 패키지 
 import { ApolloClient, ApolloProvider, InMemoryCache, useMutation, useQuery, useLazyQuery, createHttpLink } from "@apollo/client";
 import {LOGIN} from './queries';
@@ -22,24 +24,6 @@ const client = new ApolloClient({
   uri: "http://52.251.50.212:4000/",
   cache: new InMemoryCache(),
 });
-const Drawer = createDrawerNavigator();
-const Stack = createStackNavigator();
-
-function getUserInfo( ){
-  const { loading, error, data } = useQuery(SEE_REGIST_LECTURE);
-  console.log("test");
-  console.log(loading);
-  console.log(data);
-  console.log(error);
-
-  let template = ``;
-  if (loading) { template = <Text>`로딩중... ${loading}`</Text>; }
-  if (error) { template = <Text>`에러발생: ${error}`</Text>; }
-  if (data) {
-    console.log(data);
-  }
-  return;
-}
 
 function Sub() {
   //const [isLoading, setIsLoading] = React.useState(true);
@@ -52,7 +36,7 @@ function Sub() {
     isLoading: true,
     email: null,
     token: null,
-
+    lastNotif: null,
   };
 
   const loginReducer = (prevState, action) => {
@@ -62,6 +46,7 @@ function Sub() {
           ...prevState,
           email: action.email,
           token: action.token,
+          lastNotif: action.lastNotif,
           isLoading: false,
         };    
       case 'LOGIN':
@@ -69,6 +54,7 @@ function Sub() {
           ...prevState,
           email: action.id,
           token: action.token,
+          lastNotif: action.lastNotif,
           isLoading: false,
         };  
       case 'LOGOUT':
@@ -96,28 +82,37 @@ function Sub() {
       //setIsLoading(false);
       let token;
       let data;
-      data = await loginMutation({
-        variables: {
-          email: email,
-          password: password
+      let lastNotif;
+      try{
+        data = await loginMutation({
+          variables: {
+            email: email,
+            password: password
+          }
+        });
+        console.log(data.data.login);
+        token = data.data.login;
+        if (token){
+          try{
+            await AsyncStorage.setItem('token', token);
+            await AsyncStorage.setItem('userEmail', email);
+            lastNotif = await AsyncStorage.getItem('lastNotif');
+          }catch(e){
+            console.log(e);
+          }
+          
         }
-      });
-      console.log(data.data.login);
-      token = data.data.login;
-      if (token){
-        try{
-          await AsyncStorage.setItem('token', token);
-          await AsyncStorage.setItem('userEmail', email);
-        }catch(e){
-          console.log(e);
-        }
-        
+        console.log('user: ', email);
+        console.log('pass: ', password);
+        console.log('jwt: ', token);
+        console.log('lastNotif: ', lastNotif);
+        setUserEmail(email);
+        dispatch({ type: "LOGIN", id: email, token: token, lastNotif: lastNotif});
+      }catch(e){
+        console.log(e);
+        Alert.alert("아이디 또는 비밀번호를 확인하세요");
       }
-      console.log('user: ', email);
-      console.log('pass: ', password);
-      console.log('jwt: ', token);
-      setUserEmail(email);
-      dispatch({ type: "LOGIN", id: email, token: token});
+
     },
     signOut: async () => {
       console.log("sign out");
@@ -144,18 +139,21 @@ function Sub() {
     setTimeout(async () => {
       let token;
       let userEmail;
+      let lastNotif;
       token = null;
       userEmail = null;
       try{
         token = await AsyncStorage.getItem('token');
         userEmail = await AsyncStorage.getItem('userEmail');
+        lastNotif = await AsyncStorage.getItem('lastNotif');
       }catch(e){
         console.log(e);
       }
       console.log('token: ', token);
       console.log('userEmail: ', userEmail);
+      console.log('lastNotif:', lastNotif);
       setUserEmail(userEmail);
-      dispatch({ type: "RETRIEVE_TOKEN", token: token, email: userEmail});
+      dispatch({ type: "RETRIEVE_TOKEN", token: token, email: userEmail, lastNotif: lastNotif});
     }, 3000);
   }, []);
 
@@ -183,6 +181,7 @@ function Sub() {
 }
 
 export default function App(){
+  //AsyncStorage.clear();
   return(
     <ApolloProvider client={client}>
       <Sub />

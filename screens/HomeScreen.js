@@ -7,6 +7,9 @@ import { useIsFocused, useFocusEffect } from '@react-navigation/native';
 import { Ionicons, EvilIcons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview'
 import { ScrollView } from 'react-native-gesture-handler';
+import AsyncStorage from '@react-native-community/async-storage';
+import * as Notifications from 'expo-notifications';
+
 
 const NOW = new Date();
 const TIMEZONE = NOW.getTimezoneOffset()*60000;
@@ -27,7 +30,7 @@ function is_empty(obj) {
 }
 
 const CardInfo = ({current_class}) => {
-  console.log("current class at CardInfo: ", current_class);
+  //console.log("current class at CardInfo: ", current_class);
   // 더이상 수업이 없는 경우 처리
   if (current_class == undefined){
     const NOW = new Date();
@@ -64,7 +67,7 @@ const CardInfo = ({current_class}) => {
   )
 }
 const CardInfo2 = ({next_class}) => {
-  console.log("next class in CardInfo2: ", next_class);
+  //console.log("next class in CardInfo2: ", next_class);
   if (next_class == undefined){
     return (
       <View style={styles.card2}>
@@ -88,6 +91,30 @@ const CardInfo2 = ({next_class}) => {
 
 
 const Notification = ({navigation, bid}) => {
+  const user = React.useContext(UserContext);
+  const [lastNotif, setLastNotif] = React.useState(user.lastNotif);
+  setAsyncStorage = () => {
+    AsyncStorage.setItem("lastNotif", lastNotif);
+  }
+  /*
+  const setLastNotif = (current) =>{
+    let lastNotif = user.lastNotif;
+    console.log(lastNotif);
+    if (lastNotif == null){ // 마지막으로 읽은 공지가 없다?
+      try{
+        AsyncStorage.setItem("lastNotif", current);
+      }catch(e){
+        console.log(e);
+      }
+    }
+    else{ // 마지막으로 읽은 공지가 있으면 비교해서 최근 것으로 대체
+      if(current > lastNotif){
+        AsyncStorage.setItem("lastNotif", current);
+      }
+    }
+  }
+  */
+
   const { loading, error, data } = useQuery(POST_LOAD,{
     variables:{
       bid: bid,
@@ -96,9 +123,9 @@ const Notification = ({navigation, bid}) => {
     }
   });
 
-  console.log("Notification loading: ",loading);
-  console.log("Notification data   : " , data);
-  console.log("Notification error  : ", error );
+  //console.log("Notification loading: ",loading);
+  //console.log("Notification data   : " , data);
+  //console.log("Notification error  : ", error );
   
 
   if(loading){
@@ -118,6 +145,17 @@ const Notification = ({navigation, bid}) => {
         </View>
       )
     }
+    AsyncStorage.getItem('lastNotif', (err,res)=>{
+      if (Number(res) < Number(posts[0].createdAt)){
+        Notifications.scheduleNotificationAsync({
+          content:{
+            title: '새로운 공지 알림',
+            body: `아직 확인하지 않은 새로운 공지가 있습니다. ${posts[0].title}`
+          },
+          trigger: null,
+        })
+      }
+    })
     return (
       <View style={styles.card2}>
         {
@@ -126,14 +164,24 @@ const Notification = ({navigation, bid}) => {
               <TouchableOpacity 
                 key={index}
                 style={styles.notificationList} 
-                onPress= {()=>{navigation.navigate("Post",{
+                onPress= {()=>{
+                  // 마지막으로 읽은 공지 최신화
+                  AsyncStorage.getItem('lastNotif', (err, res)=>{
+                    console.log("res: ",res);
+                    if( Number(res) < Number(post.createdAt)){
+                      AsyncStorage.setItem('lastNotif', post.createdAt, ()=>{
+                        console.log(`lastNotif:${post.createdAt} 저장완료`)
+                      });
+                    }
+                  });
+                  navigation.navigate("Post",{
                   id:post.id, 
                   title: post.title, 
                   text:post.text, 
                   UserId: post.UserId,
                   Comment: post.Comment
                 })}}>
-                <Text style={{ color: "#787878" }}>{post.title} {post.text}</Text>
+                <Text style={{ color: "#787878" }}>{post.title}</Text>
               </TouchableOpacity>
             )
           })
@@ -155,9 +203,9 @@ function Main({navigation}){
   // 강의 정보 받기.
   const { loading, error, data } = useQuery(SEE_REGIST_LECTURE);
 
-  console.log("loading: ",loading);
-  console.log("data   : " , data);
-  console.log("error  : ", error );
+  //console.log("loading: ",loading);
+  //console.log("data   : " , data);
+  //console.log("error  : ", error );
   
 
   if(error){
@@ -173,20 +221,20 @@ function Main({navigation}){
     console.log("loading...");
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#1478FF"/>
       </View>
     )    
   }
   if(data){
     // 데이터 전처리. 
     let lectures = data.seeRegistLecture;
-    console.log("length: ", lectures.length);
+    //console.log("length: ", lectures.length);
     let class_list = [];
     for(let i=0; i<lectures.length; i++){
       let num_of_classes = lectures[i].classes.length;
       for(let j=0; j<num_of_classes; j++){
         let start_time = new Date(Number(lectures[i].classes[j].startTime)+TIMEZONE);
-        console.log("timezone offset: ", start_time.getTimezoneOffset());
+        //console.log("timezone offset: ", start_time.getTimezoneOffset());
         let end_time = new Date(Number(lectures[i].classes[j].endTime)+TIMEZONE);
         let class_obj = {
           name: lectures[i].name,
@@ -205,7 +253,7 @@ function Main({navigation}){
         return a.start_time.getTime() - b.start_time.getTime();
       })
     } 
-    console.log("class_list: ",class_list);
+    //console.log("class_list: ",class_list);
     // 현재 시간 포함 가장 가까운 수업을 찾는다.
     let current_class = 0;
     let next_class = 0;
